@@ -42,7 +42,6 @@ def fetch_special_offers():
             if 'data' in data:
                 special_offers.extend(data['data'])
     print("Special offers refreshed.")
-    print(special_offers)
 
 def convert_link(original_link):
     base_new_link = "https://tp.media/r"
