@@ -15,7 +15,7 @@ tp_aviasales_key = os.environ.get('TP_AVIASALES_KEY')
 unsplash_access_key = os.environ.get('UNSPLASH_ACCESS_KEY')
 
 url = "https://api.travelpayouts.com/aviasales/v3/get_special_offers"
-europe_airports = ['LON', 'CDG', 'AMS', 'FRA', 'MAD', 'BCN', 'MXP', 'FCO', 'VIE', 'DUB', 'BUD', 'BTS']
+europe_airports = ['WAW', 'PRG', 'AMS', 'FRA', 'MAD', 'BCN', 'MIL', 'ROM', 'VIE', 'DUB', 'BUD', 'PAR', 'LON']
 
 headers = {'x-access-token': tp_aviasales_key}
 
@@ -200,7 +200,7 @@ def post_tweet():
 
 # Schedule tasks
 schedule.every(3).hours.do(fetch_special_offers)
-schedule.every(1).minute.do(post_tweet)
+schedule.every(30).minutes.do(post_tweet)
 
 # Initial fetch of special offers
 fetch_special_offers()
