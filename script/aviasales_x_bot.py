@@ -9,19 +9,10 @@ from requests_oauthlib import OAuth1Session
 from datetime import datetime
 
 
-# Path to the JSON file
-keys_file = 'api_keys.json'
-
-# Read the JSON file and load the content
-with open(keys_file, 'r') as file:
-    keys = json.load(file)
-    print("file read")
-
 # Access the key
-tp_aviasales_key = keys['tp_aviasales_key']
-#tp_aviasales_key = os.environ.get('TP_API_TOKEN')
+tp_aviasales_key = os.environ.get('TP_AVIASALES_KEY')
 
-unsplash_access_key = keys['unsplash_access_key']
+unsplash_access_key = os.environ.get('UNSPLASH_ACCESS_KEY')
 
 url = "https://api.travelpayouts.com/aviasales/v3/get_special_offers"
 europe_airports = ['LON', 'CDG', 'AMS', 'FRA', 'MAD', 'BCN', 'MXP', 'FCO', 'VIE', 'DUB', 'BUD', 'BTS']
@@ -42,6 +33,7 @@ def fetch_special_offers():
             if 'data' in data:
                 special_offers.extend(data['data'])
     print("Special offers refreshed.")
+    print(data)
 
 def convert_link(original_link):
     base_new_link = "https://tp.media/r"
@@ -64,8 +56,8 @@ def format_date(date_str):
     
 def generate_hashtags(offer):
     hashtags = [
-        f"#{offer['origin_name_declined']}",
-        f"#{offer['destination_name_declined']}",
+        f"#{offer['origin_name_declined'].replace(' ', '')}",
+        f"#{offer['destination_name_declined'].replace(' ', '')}",
         "#FlightDeals",
         "#Travel",
         "#CheapFlights"
@@ -126,10 +118,8 @@ def post_tweet():
         f.write(image_response.content)
 
 
-    consumer_key = keys['consumer_key']
-    consumer_secret = keys['consumer_secret']
-    #consumer_key = os.environ.get('CONSUMER_KEY')
-    #consumer_secret = os.environ.get('CONSUMER_SECRET')
+    consumer_key = os.environ.get('CONSUMER_KEY')
+    consumer_secret = os.environ.get('CONSUMER_SECRET')
     tokens_file = 'twitter_tokens.json'
 
     def save_tokens(tokens):
