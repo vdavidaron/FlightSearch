@@ -15,7 +15,6 @@ tp_aviasales_key = os.environ.get('TP_AVIASALES_KEY')
 unsplash_access_key = os.environ.get('UNSPLASH_ACCESS_KEY')
 
 url = "https://api.travelpayouts.com/aviasales/v3/get_special_offers"
-europe_airports = ['WAW', 'PRG', 'AMS', 'FRA', 'MAD', 'BCN', 'MIL', 'ROM', 'VIE', 'DUB', 'BUD', 'PAR', 'LON']
 
 headers = {'x-access-token': tp_aviasales_key}
 
@@ -23,17 +22,40 @@ def get_params(origin):
     return {'origin': origin, 'currency': 'eur'}
 
 def fetch_special_offers():
-    global special_offers
+    global special_offers # Should be changed
     special_offers = []
-    for origin in europe_airports:
-        params = get_params(origin)
+    
+    # Load the airport codes from the file
+    try:
+        with open('airport_codes.json', 'r') as f:
+            europe_airports = json.load(f)
+    except FileNotFoundError:
+        print("Error: 'airport_codes.json' file not found.")
+        return []
+    except json.JSONDecodeError:
+        print("Error: Failed to parse 'airport_codes.json'.")
+        return []
+    
+    # Select a random origin and fetch offers
+    origin = random.choice(europe_airports)
+    params = get_params(origin)
+    try:
         response = requests.get(url, headers=headers, params=params)
-        if response.status_code == 200:
-            data = response.json()
-            if 'data' in data:
-                special_offers.extend(data['data'])
-    print("Special offers refreshed.")
-    print(data)
+        response.raise_for_status()  # Will raise an exception for any 4xx/5xx responses
+        data = response.json()
+        if 'data' in data:
+            special_offers.extend(data['data'])
+    except requests.exceptions.RequestException as e:
+        print(f"Error during HTTP request: {e}")
+        return []
+
+    # Check if any special offers were found
+    if not special_offers:
+        print("Problem with finding offers.")
+    else:
+        print("Special offers refreshed.")
+    #print(data)
+
 
 def convert_link(original_link):
     base_new_link = "https://tp.media/r"
@@ -198,17 +220,33 @@ def post_tweet():
 
     posted_offers.add(selected_offer["link"])
 
-# Schedule tasks
-schedule.every(3).hours.do(fetch_special_offers)
-schedule.every(30).minutes.do(post_tweet)
+def safe_fetch_special_offers():
+    try:
+        fetch_special_offers()
+    except Exception as e:
+        print(f"Error during fetching special offers: {e}")
+
+def safe_post_tweet():
+    try:
+        post_tweet()
+    except Exception as e:
+        print(f"Error during posting tweet: {e}")
+
+# Schedule tasks with the safe wrappers
+schedule.every(30).minutes.do(safe_post_tweet)
+schedule.every(30).minutes.do(safe_fetch_special_offers) # Might be redundant
+
 
 # Initial fetch of special offers
-fetch_special_offers()
+safe_fetch_special_offers()
 
 # Set to keep track of posted offers
 posted_offers = set()
 
 # Run the scheduler
 while True:
-    schedule.run_pending()
+    try:
+        schedule.run_pending()
+    except Exception as e:
+        print(f"Error in scheduler: {e}")
     time.sleep(1)
