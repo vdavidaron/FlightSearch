@@ -103,13 +103,16 @@ def post_tweet():
         return
 
     selected_offer = None
-    for _ in range(len(special_offers)):
-        offer = random.choice(special_offers)
-        if offer["link"] not in posted_offers:
-            selected_offer = offer
-            break
+    lowest_price = float('inf')  # Set an initial high value for comparison
 
-    if not selected_offer:
+    for offer in special_offers:
+        if offer["link"] not in posted_offers and offer["price"] < lowest_price:
+            lowest_price = offer["price"]
+            selected_offer = offer
+
+    if selected_offer:
+        print(f"Selected offer: {selected_offer}")
+    else:
         print("No new offers to post.")
         return
 
